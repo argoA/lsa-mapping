@@ -1,5 +1,9 @@
 from pprint import pprint
 from dataclasses import dataclass
+import networkx as nx
+
+from pyvis.network import Network
+import matplotlib.pyplot as plt
 
 @dataclass
 class Router():
@@ -9,24 +13,30 @@ class Router():
         """Pull the originator out of the lsa"""
 
         new_info = []
+        originator = ''
 
         for i in self.lsa:
             if i:
                 new_info.append(i.split())
 
-        return new_info[1][0].split('=')[1]
+        try:
+            originator = new_info[1][0].split('=')[1]
+        except IndexError:
+            pass
+
+        return originator
 
     def get_neighbors(self) -> list:
-        """Parse the LSA for every neighbor and cost"""
+        """Parse the LSA for neighbors information"""
 
-        # List of dictionaries
+        # List of neighbor dictionaries
         neighbors = []
 
-        # Read the lsa list in reverse
+        # Read the lsa list in reverse as neighbors are at the bottom
         for i in reversed(self.lsa):
-            neighbor = {}
             neighbor_entry = i.split()
 
+            neighbor = {}
             # If list is not empty and type= is found
             if neighbor_entry:
                 if 'type=' in neighbor_entry[0]:
@@ -51,19 +61,34 @@ def get_lsa_info() -> list:
                 lsa = []
 
             lsa.append(line.strip('\n'))
-
+ 
     return routers
+
+def create_graph(routers: list) -> None:
+    """Create a graph using the information from Router class"""
+
+    G = nx.Graph()
+
+    for router in routers:
+        originator = router.get_originator()
+        neighbors = router.get_neighbors()
+
+        for neighbor in neighbors:
+            if neighbor['type'] == 'stub':
+                continue
+
+            G.add_edge(originator, neighbor['id'])
+
+    nt = Network('1000px', '1500px')
+    nt.from_nx(G)
+    nt.show_buttons()
+
+    nt.save_graph('nx.html')
 
 def main() -> None:
     """Main script function"""
-    routers = get_lsa_info()
 
-    router = routers[600]
-    originator = router.get_originator()
-    neighbors = router.get_neighbors()
-
-    pprint(originator)
-    pprint(neighbors)
+    create_graph(get_lsa_info())
 
 if __name__ == '__main__':
     main()

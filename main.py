@@ -1,9 +1,6 @@
-from pprint import pprint
 from dataclasses import dataclass
-import networkx as nx
-
 from pyvis.network import Network
-import matplotlib.pyplot as plt
+import networkx as nx
 
 @dataclass
 class Router():

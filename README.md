@@ -1,5 +1,5 @@
 # LSA Graphing
-The following Python script is able to take OSPF LSA data and turn it into a graph with proper links.
+The following Python script is able to take OSPF LSA data and turn it into an interactive graph.
 ## Support
 Below are the current and planned devices supported.
 | Technology | Supported |

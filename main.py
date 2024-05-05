@@ -1,23 +1,25 @@
 from dataclasses import dataclass
 from pyvis.network import Network
 import networkx as nx
+import argparse
+
 
 @dataclass
-class Router():
+class Router:
     lsa: list
 
     def get_originator(self) -> str:
         """Pull the originator out of the lsa"""
 
         new_info = []
-        originator = ''
+        originator = ""
 
         for i in self.lsa:
             if i:
                 new_info.append(i.split())
 
         try:
-            originator = new_info[1][0].split('=')[1]
+            originator = new_info[1][0].split("=")[1]
         except IndexError:
             pass
 
@@ -36,30 +38,31 @@ class Router():
             neighbor = {}
             # If list is not empty and type= is found
             if neighbor_entry:
-                if 'type=' in neighbor_entry[0]:
+                if "type=" in neighbor_entry[0]:
                     for x in neighbor_entry:
-                        key, value = x.split('=')
+                        key, value = x.split("=")
                         neighbor[key] = value
 
                     neighbors.append(neighbor)
 
         return neighbors
 
-def get_lsa_info() -> list:
+
+def get_lsa_info(args: tuple) -> list:
     """Parse the lsa for every individual entry and create a list of Router classes"""
 
     routers = []
     lsa = []
 
-    with open('lsa.txt', 'r') as f:
-        for line in f.readlines():
-            if len(line.strip()) == 0:
-                routers.append(Router(lsa))
-                lsa = []
+    for line in args.file.readlines():
+        if len(line.strip()) == 0:
+            routers.append(Router(lsa))
+            lsa = []
 
-            lsa.append(line.strip('\n'))
- 
+        lsa.append(line.strip("\n"))
+
     return routers
+
 
 def create_graph(routers: list) -> None:
     """Create a graph using the information from Router class"""
@@ -71,21 +74,43 @@ def create_graph(routers: list) -> None:
         neighbors = router.get_neighbors()
 
         for neighbor in neighbors:
-            if neighbor['type'] == 'stub':
+            if neighbor["type"] == "stub":
                 continue
 
-            G.add_edge(originator, neighbor['id'])
+            G.add_edge(originator, neighbor["id"])
 
-    nt = Network('1000px', '1500px')
+    return G
+
+
+def draw_graph(G: nx.Graph) -> None:
+    """Function to draw the Graph and save it as .html"""
+
+    nt = Network("1080px", "1920px")
     nt.from_nx(G)
     nt.show_buttons()
 
-    nt.save_graph('nx.html')
+    nt.save_graph("nx.html")
+
 
 def main() -> None:
     """Main script function"""
 
-    create_graph(get_lsa_info())
+    # create user arguments
+    parser = argparse.ArgumentParser(
+        description="Create a graph out of an OSPF LSA .txt file."
+    )
+    parser.add_argument(
+        "file",
+        type=argparse.FileType("r"),
+        help="an LSA .txt file",
+    )
 
-if __name__ == '__main__':
+    args = parser.parse_args()
+
+    G = create_graph(get_lsa_info(args))
+
+    draw_graph(G)
+
+
+if __name__ == "__main__":
     main()

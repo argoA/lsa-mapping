@@ -21,6 +21,6 @@ Log into a MikroTik device on your network and run the following command in term
 ```rsc
 routing ospf lsa print detail file='lsa.txt'
 ```
-Download this file to the same directory as the main.py and run the code (`python3 main.py`). A new nx.html file will be created. Open this file in your browser.
+Download this file to the same directory as the main.py and run the code with the lsa file as an option (`python3 main.py lsa.txt`). A new nx.html file will be created. Open this file in your browser.
 ### Juniper
 Coming soon...
